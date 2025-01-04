@@ -32,13 +32,13 @@ func NewAuthData() (AuthData, error) {
 
 	state, err := GenerateNonce()
 	if err != nil {
-		return AuthData{}, fmt.Errorf("failed to generate state token: %s", err)
+		return AuthData{}, fmt.Errorf("failed to generate state token: %w", err)
 
 	}
 
-	clientId, clientErr := ReadClientId()
-	if clientErr != nil {
-		return AuthData{}, fmt.Errorf("failed to read clientid file: %s", clientErr)
+	clientId, err := ReadClientId()
+	if err != nil {
+		return AuthData{}, fmt.Errorf("failed to read clientid file: %w", err)
 	}
 
 	data := &AuthData{authUrl, clientId, "code", callbackUrl, state, scope, strconv.FormatBool(showDialog)}
@@ -58,14 +58,15 @@ func GenerateNonce() (string, error) {
 func ReadClientId() (string, error) {
 	file, err := os.Open(clientIdFileName)
 	if err != nil {
-		return "", fmt.Errorf("unable to open clientid file, %s", err)
+		return "", fmt.Errorf("unable to open clientid file, %w", err)
 	}
 	defer file.Close()
 
 	fileBytes := make([]byte, clientIdSize)
 
-	if _, err := file.Read(fileBytes); err != nil {
-		return "", fmt.Errorf("unable to read clientif file, %s", err)
+	_, err = file.Read(fileBytes)
+	if err != nil {
+		return "", fmt.Errorf("unable to read clientif file, %w", err)
 	}
 
 	return string(fileBytes), nil
@@ -75,6 +76,7 @@ func main() {
 	authData, err := NewAuthData()
 	if err != nil {
 		fmt.Printf("Failed generating auth data: %s\n", err)
+		os.Exit(1)
 	}
 	fmt.Printf("Auth data: %s\n", authData)
 
