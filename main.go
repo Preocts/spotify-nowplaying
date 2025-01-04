@@ -16,6 +16,7 @@ const callbackUrl = "https://localhost:3420/callback"
 const scope = "user-read-currently-playing"
 const showDialog = true // Force approval of auth each run
 const clientIdFileName = "clientid"
+const clientIdSize = 32
 
 type AuthData struct {
 	authUrl      string
@@ -61,7 +62,7 @@ func ReadClientId() (string, error) {
 	}
 	defer file.Close()
 
-	fileBytes := make([]byte, 32)
+	fileBytes := make([]byte, clientIdSize)
 
 	if _, err := file.Read(fileBytes); err != nil {
 		return "", fmt.Errorf("unable to read clientif file, %s", err)
