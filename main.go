@@ -7,14 +7,15 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"os"
 	"strconv"
 )
 
 const authUrl = "https://accounts.spotify.com/authorize"
 const callbackUrl = "https://localhost:3420/callback"
-const clientId = ""
 const scope = "user-read-currently-playing"
 const showDialog = true // Force approval of auth each run
+const clientIdFileName = "clientid"
 
 type AuthData struct {
 	authUrl      string
@@ -34,6 +35,11 @@ func NewAuthData() (AuthData, error) {
 
 	}
 
+	clientId, clientErr := ReadClientId()
+	if clientErr != nil {
+		return AuthData{}, fmt.Errorf("failed to read clientid file: %s", clientErr)
+	}
+
 	data := &AuthData{authUrl, clientId, "code", callbackUrl, state, scope, strconv.FormatBool(showDialog)}
 	return *data, nil
 }
@@ -46,6 +52,22 @@ func GenerateNonce() (string, error) {
 	}
 
 	return base64.URLEncoding.EncodeToString(nonceBytes), nil
+}
+
+func ReadClientId() (string, error) {
+	file, err := os.Open(clientIdFileName)
+	if err != nil {
+		return "", fmt.Errorf("unable to open clientid file, %s", err)
+	}
+	defer file.Close()
+
+	fileBytes := make([]byte, 32)
+
+	if _, err := file.Read(fileBytes); err != nil {
+		return "", fmt.Errorf("unable to read clientif file, %s", err)
+	}
+
+	return string(fileBytes), nil
 }
 
 func main() {
